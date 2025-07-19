@@ -1,0 +1,36 @@
+{
+    // Enable Python linting
+    "python.linting.enabled": true,
+    "python.linting.ruffEnabled": true,
+    "python.linting.ruffPath": "ruff",
+
+    // Optional: If you prefer flake8 instead of ruff, disable Ruff and enable this
+    // "python.linting.flake8Enabled": true,
+    // "python.linting.flake8Path": "flake8",
+
+    // Formatting
+    "python.formatting.provider": "none",
+    "[python]": {
+      "editor.defaultFormatter": "charliermarsh.ruff"
+    },
+
+    // Auto format on save
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "always",
+      "source.fixAll": "always"
+    },
+
+    // Auto-sort imports (optional, redundant if Ruff handles it)
+    "python.sortImports.args": ["--profile", "black"],
+    "python.sortImports.path": "isort",
+
+    // Ensure files end with newline (optional style preference)
+    "files.insertFinalNewline": true,
+
+    // Trim trailing whitespace on save
+    "files.trimTrailingWhitespace": true,
+
+    // Optional: Show problems in problems pane
+    "problems.showCurrentInStatus": true
+}
