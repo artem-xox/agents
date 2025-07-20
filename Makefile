@@ -5,7 +5,7 @@ ui:
 	poetry run streamlit run src/ui/main.py
 
 test:
-	poetry run pytest
+	poetry run pytest ./
 
 lint:
 	poetry run ruff check .
