@@ -2,7 +2,7 @@ import time
 
 import streamlit as st
 
-from src.agents.first.agent import FirstAgent
+from src.agents.chat.agent import SimpleChat
 from src.domain.entities import ChatRequest, Message, Role
 from src.infra.cache.dialogs import DialogCache
 from src.ui.configs import get_openai_config, get_streamlit_config
@@ -31,15 +31,17 @@ if "selected_dialog_from_dropdown" not in st.session_state:
 
 openai_config = get_openai_config()
 
-# Agent selection
-agents_mapping = {
-    "First Agent": FirstAgent(openai_config),
-}
+# Initialize agents in session state to avoid recreating them
+if "agents_mapping" not in st.session_state:
+    st.session_state.agents_mapping = {
+        "SimpleChat": SimpleChat(openai_config),
+    }
 
+# Agent selection
 selected_agent_name = st.sidebar.selectbox(
-    "Choose an agent:", options=list(agents_mapping.keys()), index=0
+    "Choose an agent:", options=list(st.session_state.agents_mapping.keys()), index=0
 )
-agent = agents_mapping[selected_agent_name]
+agent = st.session_state.agents_mapping[selected_agent_name]
 
 # Dialog management sidebar
 st.sidebar.markdown("---")

@@ -3,7 +3,9 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from src.agents.first.agent import OpenAIConfig
+from src.clients.openai import OpenAIConfig
+
+DEFAULT_OPENAI_MODEL = "gpt-4.1-2025-04-14"
 
 
 def load_env_file(env_file_path: str = ".env") -> None:
@@ -52,7 +54,7 @@ def get_openai_config() -> OpenAIConfig:
     """
     return OpenAIConfig(
         api_key=os.getenv("OPENAI_API_KEY", ""),
-        model=os.getenv("OPENAI_MODEL", "gpt-3.5-turbo"),
+        model=os.getenv("OPENAI_MODEL", DEFAULT_OPENAI_MODEL),
         temperature=float(os.getenv("OPENAI_TEMPERATURE", "0.7")),
         max_tokens=int(os.getenv("OPENAI_MAX_TOKENS"))
         if os.getenv("OPENAI_MAX_TOKENS")

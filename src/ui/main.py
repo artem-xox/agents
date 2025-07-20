@@ -10,4 +10,3 @@ st.set_page_config(
 )
 
 st.write("# Agents playground")
-st.sidebar.success("Select a demo mode above.")
