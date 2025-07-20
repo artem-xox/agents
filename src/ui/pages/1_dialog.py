@@ -3,6 +3,7 @@ import time
 import streamlit as st
 
 from src.agents.chat.agent import SimpleChat
+from src.agents.supporter.agent import SupporterAgent
 from src.domain.entities import ChatRequest, Message, Role
 from src.infra.cache.dialogs import DialogCache
 from src.ui.configs import get_openai_config, get_streamlit_config
@@ -35,6 +36,7 @@ openai_config = get_openai_config()
 if "agents_mapping" not in st.session_state:
     st.session_state.agents_mapping = {
         "SimpleChat": SimpleChat(openai_config),
+        "Supporter": SupporterAgent(openai_config),
     }
 
 # Agent selection

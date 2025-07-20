@@ -27,6 +27,8 @@ class OpenAIRequest:
     messages: list[OpenAIMessage]
     temperature: float = 0.7
     max_tokens: int | None = None
+    functions: list[dict] | None = None
+    function_call: str | dict | None = None
 
 
 @dataclass
@@ -34,6 +36,7 @@ class OpenAIResponse:
     content: str
     model: str
     usage: dict
+    function_call: dict | None = None
 
 
 class OpenAIClient:
@@ -64,12 +67,21 @@ class OpenAIClient:
                     f"Attempt {attempt + 1}/{self.MAX_RETRIES} to call OpenAI API"
                 )
 
-                response = self.client.chat.completions.create(
-                    model=request.model,
-                    messages=messages,  # type: ignore
-                    temperature=request.temperature,
-                    max_tokens=request.max_tokens,
-                )
+                # Prepare request parameters
+                request_params = {
+                    "model": request.model,
+                    "messages": messages,  # type: ignore
+                    "temperature": request.temperature,
+                }
+
+                if request.max_tokens:
+                    request_params["max_tokens"] = request.max_tokens
+                if request.functions:
+                    request_params["functions"] = request.functions
+                if request.function_call:
+                    request_params["function_call"] = request.function_call
+
+                response = self.client.chat.completions.create(**request_params)
 
                 self.logger.info(
                     f"Successfully received response from OpenAI on attempt {attempt + 1}"
@@ -87,15 +99,26 @@ class OpenAIClient:
                     )
                     raise
 
-        content = response.choices[0].message.content
-        if content is None:
-            self.logger.error("OpenAI response content is None")
-            raise ValueError("OpenAI response content is None")
+        message = response.choices[0].message
+        content = message.content
+        function_call = (
+            message.function_call.model_dump() if message.function_call else None
+        )
 
-        self.logger.info(f"Response content length: {len(content)} characters")
+        if content is None and function_call is None:
+            self.logger.error("OpenAI response has no content or function call")
+            raise ValueError("OpenAI response has no content or function call")
+
+        if content:
+            self.logger.info(f"Response content length: {len(content)} characters")
+        if function_call:
+            self.logger.info(
+                f"Function call detected: {function_call.get('name', 'unknown')}"
+            )
 
         return OpenAIResponse(
-            content=content,
+            content=content or "",
             model=response.model,
             usage=response.usage.model_dump() if response.usage else {},
+            function_call=function_call,
         )
