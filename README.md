@@ -1,15 +1,16 @@
 # AI Agents Playground
 
-A personal playground for experimenting with AI agents, featuring a modern web UI built with Streamlit.
+A personal playground for experimenting with AI agents, featuring a modern web UI built with Streamlit and local dialog persistence.
 
 ## Overview
 
-This project is my personal sandbox for developing and testing various AI agent implementations. It provides a clean, modular architecture for building different types of agents and a user-friendly interface to interact with them.
+This project is my personal sandbox for developing and testing various AI agent implementations. It provides a clean, modular architecture for building different types of agents and a user-friendly interface to interact with them. The application includes a local dialog cache system that automatically saves and manages conversation history.
 
 ## Features
 
 - **Modular Agent Architecture**: Clean separation between agent implementations and the domain layer
 - **Web UI**: Interactive Streamlit-based interface for chatting with agents
+- **Local Dialog Cache**: Automatic saving and management of conversation history in JSON format
 - **Multiple Agent Types**: Support for different agent implementations (Dummy, OpenAI-based, etc.)
 - **Type Safety**: Full type hints and modern Python practices
 - **Easy Configuration**: Environment-based configuration for API keys and settings
@@ -22,10 +23,75 @@ src/
 │   ├── dummy/       # Simple echo agent for testing
 │   └── first/       # OpenAI-powered agent
 ├── domain/          # Core domain entities and interfaces
+├── infra/           # Infrastructure components
+│   └── cache/       # Dialog cache implementation
 ├── ui/              # Streamlit web interface
 │   ├── pages/       # Different UI pages
 │   └── main.py      # Main UI entry point
+dialog_cache/         # Local storage for saved dialogs (auto-created)
 ```
+
+## Dialog Cache System
+
+The application includes a robust local dialog cache system that automatically manages your conversation history:
+
+### Features
+
+- **Automatic Saving**: Every conversation is automatically saved after each message exchange
+- **Local Storage**: All dialogs are stored locally in JSON format in the `dialog_cache/` directory
+- **Easy Management**: Load, delete, and start new conversations through the web interface
+- **Persistent History**: Conversations survive application restarts
+- **Metadata Tracking**: Each dialog includes creation date, message count, and unique ID
+
+### Usage
+
+#### Starting a New Dialog
+- Click the "Start a new dialog" button in the sidebar
+- The current conversation will be automatically saved before starting fresh
+
+#### Loading Previous Dialogs
+- Use the "Load Previous Dialog" dropdown in the sidebar
+- Select any saved conversation to load it instantly
+- Dialogs are sorted by creation date (newest first)
+
+#### Managing Dialogs
+- View current dialog information in the sidebar
+- Delete unwanted conversations using the delete dialog section
+- All operations are performed locally - no data is sent to external servers
+
+### Technical Details
+
+#### Storage Format
+Dialogs are saved as JSON files with the following structure:
+```json
+{
+  "dialog_id": "20241201_143022",
+  "created_at": "2024-12-01T14:30:22.123456",
+  "messages": [
+    {
+      "role": "user",
+      "text": "Hello, how are you?"
+    },
+    {
+      "role": "assistant",
+      "text": "I'm doing well, thank you for asking!"
+    }
+  ]
+}
+```
+
+#### File Organization
+- **Location**: `dialog_cache/` directory (auto-created)
+- **Naming**: Files use timestamp-based IDs (YYYYMMDD_HHMMSS format)
+- **Git Ignored**: The cache directory is excluded from version control
+
+#### Cache Management
+The `DialogCache` class provides these operations:
+- `save_dialog()`: Save conversation to local storage
+- `load_dialog()`: Load conversation from storage
+- `list_dialogs()`: Get all available dialogs with metadata
+- `delete_dialog()`: Remove dialog from storage
+- `get_dialog_info()`: Get dialog metadata without loading messages
 
 ## Getting Started
 
@@ -97,6 +163,7 @@ The project follows a clean architecture pattern:
 
 - **Domain Layer**: Core entities (`Message`, `ChatRequest`, `ChatResponse`) and interfaces (`Agent`)
 - **Agent Layer**: Concrete implementations of different AI agents
+- **Infrastructure Layer**: Dialog cache and other infrastructure components
 - **UI Layer**: Streamlit-based web interface for user interaction
 
 This separation makes it easy to add new agent types or modify the UI without affecting the core domain logic.
