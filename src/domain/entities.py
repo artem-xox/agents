@@ -9,7 +9,7 @@ class Role:
 
 @dataclass
 class Message:
-    role: Role
+    role: str
     text: str
 
 

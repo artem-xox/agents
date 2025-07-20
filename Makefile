@@ -2,7 +2,7 @@ install:
 	poetry install --no-root
 
 ui:
-	poetry run streamlit run src/ui/main.py
+	PYTHONPATH=${PWD} poetry run streamlit run src/ui/main.py
 
 test:
 	poetry run pytest ./
