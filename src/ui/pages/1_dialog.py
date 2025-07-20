@@ -2,24 +2,32 @@ import time
 
 import streamlit as st
 
-from src.agents.dummy.agent import DummyAgent
-from src.agents.first.agent import FirstAgent, OpenAIConfig
+from src.agents.first.agent import FirstAgent
 from src.domain.entities import ChatRequest, Message, Role
+from src.ui.configs import get_openai_config, get_streamlit_config
 
 # ----------------------------
 # Streamlit App Configuration
 # ----------------------------
-st.set_page_config(page_title="Dialog", page_icon="🤖")
+streamlit_config = get_streamlit_config()
+st.set_page_config(
+    page_title=streamlit_config["page_title"],
+    page_icon=streamlit_config["page_icon"],
+    layout=streamlit_config["layout"],
+)
 st.subheader("Dialog")
 
 # Initialize session state
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+
+openai_config = get_openai_config()
+
+
 # Agent selection
 agents_mapping = {
-    "First Agent": FirstAgent(OpenAIConfig()),
-    "Dummy Agent": DummyAgent(),
+    "First Agent": FirstAgent(openai_config),
 }
 
 selected_agent_name = st.sidebar.selectbox(

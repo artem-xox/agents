@@ -9,6 +9,7 @@ python = "^3.11"
 fastapi = "^0.116.1"
 openai = "^1.97.0"
 langchain = "^0.3.26"
+python-dotenv = "^1.1.1"
 
 [tool.poetry.dev-dependencies]
 notebook = "^7.4.4"
