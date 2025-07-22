@@ -10,6 +10,7 @@ fastapi = "^0.116.1"
 openai = "^1.97.0"
 langchain = "^0.3.26"
 python-dotenv = "^1.1.1"
+evidently = "^0.7.11"
 
 [tool.poetry.dev-dependencies]
 notebook = "^7.4.4"

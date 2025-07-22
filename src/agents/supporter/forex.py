@@ -128,6 +128,8 @@ class ForexAgent(BaseAgent):
     Forex agent that handles currency exchange queries using function calls.
     """
 
+    NAME = "forex"
+
     def __init__(self):
         super().__init__()
         self.forex_client = ForexClient()
@@ -151,7 +153,9 @@ class ForexAgent(BaseAgent):
             response_text = self._handle_general_forex_query(last_message)
 
         # Create assistant message
-        assistant_message = Message(role=Role.ASSISTANT, text=response_text)
+        assistant_message = Message(
+            role=Role.ASSISTANT, text=response_text, agent=self.NAME
+        )
 
         self.logger.info("Generated forex response")
         return ChatResponse(messages=request.messages + [assistant_message])

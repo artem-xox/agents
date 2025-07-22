@@ -10,6 +10,8 @@ class BaseAgent(Agent, ABC):
     Base agent class with common logging functionality.
     """
 
+    NAME = "base"
+
     def __init__(self):
         self.logger = get_logger(self.__class__.__module__)
         self.logger.info(f"Initialized {self.__class__.__name__}")

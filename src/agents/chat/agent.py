@@ -42,7 +42,9 @@ class SimpleChat(BaseAgent):
             raise
 
         # Convert back to domain format
-        assistant_message = Message(role=Role.ASSISTANT, text=openai_response.content)
+        assistant_message = Message(
+            role=Role.ASSISTANT, text=openai_response.content, agent=self.NAME
+        )
 
         self.logger.info("Generated assistant response")
         return ChatResponse(messages=request.messages + [assistant_message])

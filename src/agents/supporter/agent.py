@@ -13,6 +13,8 @@ class SupporterAgent(BaseAgent):
     Personal assistant agent that can help with any question and route to specialized sub-agents using function calling.
     """
 
+    NAME = "orchestrator"
+
     def __init__(self, openai_config: OpenAIConfig):
         super().__init__()
         self.openai_client = OpenAIClient(openai_config)
@@ -166,7 +168,7 @@ class SupporterAgent(BaseAgent):
             else:
                 # Regular response
                 assistant_message = Message(
-                    role=Role.ASSISTANT, text=openai_response.content
+                    role=Role.ASSISTANT, text=openai_response.content, agent=self.NAME
                 )
                 self.logger.info("Generated assistant response")
                 return ChatResponse(messages=request.messages + [assistant_message])
@@ -294,19 +296,14 @@ class SupporterAgent(BaseAgent):
 
         # Create a request with the extracted parameters
         weather_query = f"What's the {query_type} weather in {location}?"
-        weather_message = Message(role=Role.USER, text=weather_query)
+        weather_message = Message(role=Role.USER, text=weather_query, agent=self.NAME)
         weather_request = ChatRequest(messages=[weather_message])
 
         self.logger.info(f"Calling WeatherAgent for {query_type} weather in {location}")
         sub_response = self.weather_agent.chat(weather_request)
 
-        # Create assistant message from sub-agent's response
-        assistant_message = Message(
-            role=Role.ASSISTANT, text=sub_response.messages[-1].text
-        )
-
         # Return the full conversation context with the assistant's response
-        return ChatResponse(messages=request.messages + [assistant_message])
+        return ChatResponse(messages=request.messages + [sub_response.messages[-1]])
 
     def _handle_forex_function(
         self, parameters: Dict[str, Any], request: ChatRequest
@@ -322,7 +319,7 @@ class SupporterAgent(BaseAgent):
         else:
             forex_query = f"What's the {from_currency} to {to_currency} rate?"
 
-        forex_message = Message(role=Role.USER, text=forex_query)
+        forex_message = Message(role=Role.USER, text=forex_query, agent=self.NAME)
         forex_request = ChatRequest(messages=[forex_message])
 
         self.logger.info(
@@ -330,13 +327,8 @@ class SupporterAgent(BaseAgent):
         )
         sub_response = self.forex_agent.chat(forex_request)
 
-        # Create assistant message from sub-agent's response
-        assistant_message = Message(
-            role=Role.ASSISTANT, text=sub_response.messages[-1].text
-        )
-
         # Return the full conversation context with the assistant's response
-        return ChatResponse(messages=request.messages + [assistant_message])
+        return ChatResponse(messages=request.messages + [sub_response.messages[-1]])
 
     def _process_general_question(self, request: ChatRequest) -> ChatResponse:
         """Process general questions using the main assistant."""
@@ -380,7 +372,9 @@ class SupporterAgent(BaseAgent):
             raise
 
         # Convert back to domain format
-        assistant_message = Message(role=Role.ASSISTANT, text=openai_response.content)
+        assistant_message = Message(
+            role=Role.ASSISTANT, text=openai_response.content, agent=self.NAME
+        )
 
         self.logger.info("Generated assistant response")
         return ChatResponse(messages=request.messages + [assistant_message])

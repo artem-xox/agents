@@ -1,4 +1,3 @@
-import os
 import time
 from dataclasses import dataclass
 
@@ -9,8 +8,8 @@ from src.infra.logger import get_logger
 
 @dataclass
 class OpenAIConfig:
-    api_key: str = os.getenv("OPENAI_API_KEY", "")
-    model: str = "gpt-4.1-2025-04-14"
+    api_key: str
+    model: str
     temperature: float = 0.7
     max_tokens: int | None = None
 

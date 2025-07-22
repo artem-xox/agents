@@ -11,6 +11,7 @@ class Role:
 class Message:
     role: str
     text: str
+    agent: str | None = None
 
 
 @dataclass

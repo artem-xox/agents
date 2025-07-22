@@ -81,6 +81,8 @@ class WeatherAgent(BaseAgent):
     Weather agent that handles weather-related queries using function calls.
     """
 
+    NAME = "weather"
+
     def __init__(self):
         super().__init__()
         self.weather_client = WeatherClient()
@@ -105,7 +107,9 @@ class WeatherAgent(BaseAgent):
             response_text = self._format_current_weather_response(weather_data)
 
         # Create assistant message
-        assistant_message = Message(role=Role.ASSISTANT, text=response_text)
+        assistant_message = Message(
+            role=Role.ASSISTANT, text=response_text, agent=self.NAME
+        )
 
         self.logger.info("Generated weather response")
         return ChatResponse(messages=request.messages + [assistant_message])

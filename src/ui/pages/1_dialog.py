@@ -35,8 +35,8 @@ openai_config = get_openai_config()
 # Initialize agents in session state to avoid recreating them
 if "agents_mapping" not in st.session_state:
     st.session_state.agents_mapping = {
-        "SimpleChat": SimpleChat(openai_config),
         "Supporter": SupporterAgent(openai_config),
+        "SimpleChat": SimpleChat(openai_config),
     }
 
 # Agent selection
@@ -139,6 +139,15 @@ else:
 for msg in st.session_state.messages:
     role = "user" if msg.role == Role.USER else "assistant"
     with st.chat_message(role):
+        if role == "assistant" and getattr(msg, "agent", None):
+            st.markdown(
+                f"""
+                <span style='display:inline-block; background:#e0e7ff; color:#3730a3; border-radius:12px; padding:2px 10px; font-size:0.85em; font-weight:600; margin-bottom:4px;'>
+                    {msg.agent}
+                </span>
+                """,
+                unsafe_allow_html=True,
+            )
         st.write(msg.text)
 
 # Handle user input
@@ -160,6 +169,15 @@ if prompt := st.chat_input("Type your message..."):
         st.session_state.messages.append(msg)
 
         with st.chat_message("assistant"):
+            if getattr(msg, "agent", None):
+                st.markdown(
+                    f"""
+                    <span style='display:inline-block; background:#e0e7ff; color:#3730a3; border-radius:12px; padding:2px 10px; font-size:0.85em; font-weight:600; margin-bottom:4px;'>
+                        {msg.agent}
+                    </span>
+                    """,
+                    unsafe_allow_html=True,
+                )
             placeholder = st.empty()
 
             # Typing animation
