@@ -2,24 +2,29 @@ import json
 from typing import Any, Dict
 
 from src.agents.base import BaseAgent
-from src.agents.supporter.forex import ForexAgent
-from src.agents.supporter.weather import WeatherAgent
-from src.clients.openai import OpenAIClient, OpenAIConfig, OpenAIMessage, OpenAIRequest
+from src.agents.supporter.forex.agent import ForexAgent
+from src.agents.supporter.orchestrator.prompt import SYSTEM_PROMPT
+from src.agents.supporter.orchestrator.tools import FUNCTIONS
+from src.agents.supporter.weather.agent import WeatherAgent
+from src.clients.openai import OpenAIClient, OpenAIMessage, OpenAIRequest
 from src.domain.entities import ChatRequest, ChatResponse, Message, Role
 
 
-class SupporterAgent(BaseAgent):
+class Supporter(BaseAgent):
     """
     Personal assistant agent that can help with any question and route to specialized sub-agents using function calling.
     """
 
-    NAME = "orchestrator"
+    NAME = "supporter"
 
-    def __init__(self, openai_config: OpenAIConfig):
+    def __init__(self, openai_client: OpenAIClient):
         super().__init__()
-        self.openai_client = OpenAIClient(openai_config)
-        self.weather_agent = WeatherAgent()
-        self.forex_agent = ForexAgent()
+        self.openai_client = openai_client
+        self.weather_agent = WeatherAgent(openai_client)
+        self.forex_agent = ForexAgent(openai_client)
+
+        self.functions = FUNCTIONS
+        self.system_prompt = SYSTEM_PROMPT
 
     def chat(self, request: ChatRequest) -> ChatResponse:
         self.logger.info(
@@ -32,84 +37,13 @@ class SupporterAgent(BaseAgent):
     def _process_with_function_calling(self, request: ChatRequest) -> ChatResponse:
         """Process the request using OpenAI function calling for intelligent routing."""
 
-        # Define the functions that can be called
-        functions = [
-            {
-                "name": "get_weather",
-                "description": "Get current weather information or forecast for a specific location",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "location": {
-                            "type": "string",
-                            "description": "The city or location to get weather for",
-                        },
-                        "query_type": {
-                            "type": "string",
-                            "enum": ["current", "forecast"],
-                            "description": "Whether to get current weather or forecast",
-                        },
-                    },
-                    "required": ["location"],
-                },
-            },
-            {
-                "name": "get_forex",
-                "description": "Get currency exchange rates or convert between currencies. Use this for ANY currency-related queries including USD, EUR, GBP, JPY, CAD, AUD, CHF, CNY, RUB, etc.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "action": {
-                            "type": "string",
-                            "enum": ["convert", "rate"],
-                            "description": "Whether to convert currency or get exchange rate",
-                        },
-                        "from_currency": {
-                            "type": "string",
-                            "description": "Source currency code (USD, EUR, GBP, JPY, CAD, AUD, CHF, CNY, RUB, etc.)",
-                        },
-                        "to_currency": {
-                            "type": "string",
-                            "description": "Target currency code (USD, EUR, GBP, JPY, CAD, AUD, CHF, CNY, RUB, etc.)",
-                        },
-                        "amount": {
-                            "type": "number",
-                            "description": "Amount to convert (required for conversion)",
-                        },
-                    },
-                    "required": ["action", "from_currency", "to_currency"],
-                },
-            },
-        ]
-
         # Convert domain messages to OpenAI format
         openai_messages = []
 
         # Add system message
-        system_message = """You are a helpful personal assistant that can help with any question.
-        You have access to specialized functions for weather and forex information.
-
-        CRITICAL RULES:
-        1. ANY mention of currency codes (USD, EUR, GBP, JPY, CAD, AUD, CHF, CNY, RUB, etc.) → use get_forex
-        2. ANY mention of "rate", "convert", "exchange", "currency" → use get_forex
-        3. ANY mention of weather, temperature, forecast → use get_weather
-        4. For all other questions, respond directly as a helpful assistant.
-
-        Available functions:
-        - get_weather: For weather queries (current weather or forecasts)
-        - get_forex: For currency conversion and exchange rates (including questions about euros, dollars, pounds, etc.)
-
-        Examples:
-        - "100 euros in usd" → use get_forex
-        - "convert 50 dollars to euros" → use get_forex
-        - "exchange rate for USD to EUR" → use get_forex
-        - "rub to eur rate" → use get_forex
-        - "usd to gbp" → use get_forex
-        - "weather in London" → use get_weather
-        - "temperature in Tokyo" → use get_weather
-
-        If the user's query doesn't clearly match weather or forex, respond as a general assistant."""
-        openai_messages.append(OpenAIMessage(role=Role.SYSTEM, content=system_message))
+        openai_messages.append(
+            OpenAIMessage(role=Role.SYSTEM, content=self.system_prompt)
+        )
 
         # Add user messages
         for msg in request.messages:
@@ -122,7 +56,7 @@ class SupporterAgent(BaseAgent):
             messages=openai_messages,
             temperature=self.openai_client.config.temperature,
             max_tokens=self.openai_client.config.max_tokens,
-            functions=functions,
+            functions=self.functions,
             function_call="auto",  # Let OpenAI decide when to call functions
         )
 

@@ -1,12 +1,12 @@
 from src.agents.base import BaseAgent
-from src.clients.openai import OpenAIClient, OpenAIConfig, OpenAIMessage, OpenAIRequest
+from src.clients.openai import OpenAIClient, OpenAIMessage, OpenAIRequest
 from src.domain.entities import ChatRequest, ChatResponse, Message, Role
 
 
 class SimpleChat(BaseAgent):
-    def __init__(self, openai_config: OpenAIConfig):
+    def __init__(self, openai_client: OpenAIClient):
         super().__init__()
-        self.openai_client = OpenAIClient(openai_config)
+        self.openai_client = openai_client
 
     def chat(self, request: ChatRequest) -> ChatResponse:
         self.logger.info(f"Received chat request with {len(request.messages)} messages")

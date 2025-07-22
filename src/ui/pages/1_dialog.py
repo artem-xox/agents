@@ -3,7 +3,8 @@ import time
 import streamlit as st
 
 from src.agents.chat.agent import SimpleChat
-from src.agents.supporter.agent import SupporterAgent
+from src.agents.supporter.orchestrator.agent import Supporter
+from src.clients.openai import OpenAIClient
 from src.domain.entities import ChatRequest, Message, Role
 from src.infra.cache.dialogs import DialogCache
 from src.ui.configs import get_openai_config, get_streamlit_config
@@ -25,18 +26,19 @@ dialog_cache = DialogCache()
 # Initialize session state
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "is_openai_client_initialized" not in st.session_state:
+    openai_client = OpenAIClient(get_openai_config())
+    st.session_state.is_openai_client_initialized = True
 if "current_dialog_id" not in st.session_state:
     st.session_state.current_dialog_id = None
 if "selected_dialog_from_dropdown" not in st.session_state:
     st.session_state.selected_dialog_from_dropdown = ""
 
-openai_config = get_openai_config()
-
 # Initialize agents in session state to avoid recreating them
 if "agents_mapping" not in st.session_state:
     st.session_state.agents_mapping = {
-        "Supporter": SupporterAgent(openai_config),
-        "SimpleChat": SimpleChat(openai_config),
+        "Supporter": Supporter(openai_client),
+        "SimpleChat": SimpleChat(openai_client),
     }
 
 # Agent selection
